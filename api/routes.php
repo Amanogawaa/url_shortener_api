@@ -27,12 +27,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once "./modules/url_shortener.php";
 require_once "./config/connection.php";
 require_once "./modules/payload.php";
+require_once "./modules/getter.php";
 
 
 try {
     $db = new Connection();
     $pdo = $db->connect();
     $payload = new GlobalMethods();
+    $get = new Getter($pdo);
 
 
     if (!$pdo) {
@@ -56,6 +58,23 @@ try {
         case 'OPTIONS':
             http_response_code(200);
             exit;
+
+        case 'GET':
+            switch ($request[0]) {
+                case 'urls':
+                    if (count($request) > 1) {
+                        $result = $get->getURLS($request[1]);
+                        echo json_encode($result);
+                    } else {
+                        $result = $get->getURLS();
+                        echo json_encode($result);
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+            break;
 
         case 'POST':
             $data = json_decode(file_get_contents('php://input'), true);
